@@ -1,7 +1,7 @@
 import React from 'react';
 
 import Button from '../Button';
-import Toast from '../Toast';
+import ToastShelf from '../ToastShelf';
 
 import styles from './ToastPlayground.module.css';
 
@@ -9,12 +9,30 @@ const VARIANT_OPTIONS = ['notice', 'warning', 'success', 'error'];
 
 function ToastPlayground() {
   const [message, setMessage] = React.useState('');
-  const [varient, setVarient] = React.useState(VARIANT_OPTIONS[0]);
-  const [isToastVisible, setToastVisible] = React.useState(false);
+  const [variant, setVariant] = React.useState(VARIANT_OPTIONS[0]);
+  const [toasts, setToasts] = React.useState([]);
 
-  const handleToastDismiss = React.useCallback(() => {
-    setToastVisible(false);
+  const removeToast = React.useCallback((id) => {
+    setToasts((changeToasts) => {
+      return changeToasts.filter((toast) => toast.id !== id);
+    });
   }, []);
+
+  function handleFormSubmission(event) {
+    event.preventDefault();
+    const id = crypto.randomUUID();
+    const handleToastDismiss = () => removeToast(id);
+    const newToast = {
+      id,
+      variant,
+      message,
+      handleToastDismiss,
+    };
+    const newToasts = [...toasts, newToast];
+    setToasts(newToasts);
+    setMessage('');
+    setVariant(VARIANT_OPTIONS[0]);
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -22,19 +40,8 @@ function ToastPlayground() {
         <img alt='Cute toast mascot' src='/toast.png' />
         <h1>Toast Playground</h1>
       </header>
-      {isToastVisible && (
-        <Toast
-          varient={varient}
-          message={message}
-          handleToastDismiss={handleToastDismiss}
-        />
-      )}
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          setToastVisible(true);
-        }}
-      >
+      <ToastShelf toastsData={toasts} />
+      <form onSubmit={handleFormSubmission}>
         <div className={styles.controlsWrapper}>
           <div className={styles.row}>
             <label
@@ -63,15 +70,15 @@ function ToastPlayground() {
                 className={`${styles.inputWrapper} ${styles.radioWrapper}`}
               >
                 {VARIANT_OPTIONS.map((option) => (
-                  <label key={option} htmlFor={`varient-${option}`}>
+                  <label key={option} htmlFor={`variant-${option}`}>
                     <input
-                      id={`varient-${option}`}
+                      id={`variant-${option}`}
                       type='radio'
                       name='variant'
                       value={option}
-                      checked={varient === option}
+                      checked={variant === option}
                       onChange={(event) => {
-                        setVarient(event.target.value);
+                        setVariant(event.target.value);
                       }}
                     />
                     {option}
